@@ -1,0 +1,7 @@
+# 中間產物 / 備份
+*.bak
+android/build/
+android/*.apk
+android/*.idsig
+android/debug.keystore
+.DS_Store
