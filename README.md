@@ -33,6 +33,12 @@ cd android && ./build.sh                         # 產出 nexus-notes.apk
 
 建置流程：`aapt2 compile/link` → `javac` → `d8` → 打包 dex → `zipalign` → `apksigner`。
 
+> **簽名金鑰務必保留**：金鑰庫放在 `android/debug.keystore`（已 gitignore，不進版控）。
+> 若遺失後重新產生，憑證會與已發布版本不同，用戶手機將**無法覆蓋安裝**
+> （`INSTALL_FAILED_UPDATE_INCOMPATIBLE`，症狀是安裝時顯示「無法安裝」）。
+> `android/release-cert.sha256` 記錄正確的憑證 SHA-256，`build.sh` 比對不符會直接中止建置。
+> 萬一必須換金鑰，需先請用戶解除安裝舊版（一次性動作）。
+
 ## 測試
 
 以 Chrome DevTools Protocol 進行 end-to-end 冒煙測試（需已安裝 Google Chrome）：

@@ -23,7 +23,7 @@ echo "== 2/7 連結資源+資產 (aapt2 link) =="
   -A assets \
   --java build/gen \
   --min-sdk-version 24 --target-sdk-version 35 \
-  --version-code 1 --version-name 1.0 \
+  --version-code 2 --version-name 1.1 \
   --auto-add-overlay
 
 echo "== 3/7 編譯 Java (javac) =="
@@ -45,15 +45,39 @@ echo "== 6/7 對齊 (zipalign) =="
 "$BT/zipalign" -f 4 build/unsigned.apk build/aligned.apk
 
 echo "== 7/7 簽署 (apksigner) =="
-if [ ! -f build/debug.keystore ]; then
-  keytool -genkeypair -keystore build/debug.keystore -alias nexusdebug \
+# 金鑰庫必須放在 build/ 之外：上方 `rm -rf build` 會清掉整個 build 目錄，
+# 若金鑰也放這裡，每次建置都會換一組全新簽名，用戶手機上的舊版就會
+# 無法覆蓋安裝（INSTALL_FAILED_UPDATE_INCOMPATIBLE）。
+# release-cert.sha256 記錄「應該使用」的憑證指紋，簽錯金鑰直接中止建置。
+KEYSTORE="$HERE/debug.keystore"
+CERT_LOG="$HERE/release-cert.sha256"
+if [ ! -f "$KEYSTORE" ]; then
+  keytool -genkeypair -keystore "$KEYSTORE" -alias nexusdebug \
     -storepass nexusapp -keypass nexusapp -keyalg RSA -keysize 2048 -validity 10000 \
     -dname "CN=NEXUS,O=NEXUS,C=TW"
 fi
-"$BT/apksigner" sign --ks build/debug.keystore --ks-pass pass:nexusapp --key-pass pass:nexusapp \
-  --min-sdk-version 24 --out nexus-notes.apk build/aligned.apk
+"$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:nexusapp --key-pass pass:nexusapp \
+  --min-sdk-version 24 \
+  --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
+  --out nexus-notes.apk build/aligned.apk
 
 echo "== 驗證 =="
-"$BT/apksigner" verify --print-certs nexus-notes.apk | head -6
+CERTS="$("$BT/apksigner" verify --print-certs nexus-notes.apk)"
+echo "$CERTS" | head -6
+GOT_CERT="$(echo "$CERTS" | awk '/SHA-256 digest/{print $NF; exit}')"
+if [ -f "$CERT_LOG" ]; then
+  WANT_CERT="$(tr -d '[:space:]' < "$CERT_LOG")"
+  if [ "$GOT_CERT" != "$WANT_CERT" ]; then
+    echo "!! 失敗：簽名憑證與記錄不符 —— 停止建置，避免發布用戶裝不上的 APK" >&2
+    echo "   期望: $WANT_CERT" >&2
+    echo "   實際: $GOT_CERT" >&2
+    echo "   請確認 $KEYSTORE 是否為原始金鑰庫" >&2
+    exit 1
+  fi
+  echo "== 憑證指紋與 release-cert.sha256 一致: $GOT_CERT =="
+else
+  printf '%s\n' "$GOT_CERT" > "$CERT_LOG"
+  echo "== 已建立憑證指紋記錄 → $CERT_LOG =="
+fi
 "$BT/aapt" dump badging nexus-notes.apk | grep -E "package|application-label|launchable-activity|sdkVersion|targetSdkVersion"
 echo "OK → $(pwd)/nexus-notes.apk ($(du -h nexus-notes.apk | cut -f1))"
