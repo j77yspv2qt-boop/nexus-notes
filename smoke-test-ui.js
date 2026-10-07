@@ -188,11 +188,14 @@ async function main(){
       const zg=document.querySelector('.zoomgrp');
       const tl=document.querySelector('.tlabel');
       const tb=document.getElementById('topbar');
+      const tcs=getComputedStyle(document.getElementById('tbCats'));
       const tbs=getComputedStyle(tb);
       return {sidebar:disp('sidebar'),panel:disp('panel'),sideToggle:disp('sideToggle'),
         zoomgrp:zg?getComputedStyle(zg).display:'none',
         tlabel:tl?getComputedStyle(tl).display:'none',
-        topbarWrap:tbs.flexWrap,topbarOx:tbs.overflowX,
+        topbarWrap:tbs.flexWrap,topbarOx:tcs.overflowX,
+        catsCount:document.querySelectorAll('#tbCats .tcat').length,
+        paneOn:document.querySelectorAll('#tbPanel .tbPane.on').length,
         innerW:window.innerWidth};
     }catch(e){return {err:String(e)}}
   })())`));
@@ -200,8 +203,8 @@ async function main(){
   check('手機版隱藏側欄 #sidebar',mob.sidebar==='none',JSON.stringify(mob));
   check('手機版隱藏屬性欄 #panel',mob.panel==='none',JSON.stringify(mob));
   check('手機版隱藏縮放鈕組 .zoomgrp',mob.zoomgrp==='none',JSON.stringify(mob));
-  check('手機版隱藏組標籤 .tlabel',mob.tlabel==='none',JSON.stringify(mob));
-  check('頂列單行不換行+橫向捲動',mob.topbarWrap==='nowrap'&&mob.topbarOx==='auto',JSON.stringify({wrap:mob.topbarWrap,ox:mob.topbarOx}));
+  check('頂列單行不換行+分類列橫向捲動',mob.topbarWrap==='nowrap'&&mob.topbarOx==='auto',JSON.stringify({wrap:mob.topbarWrap,ox:mob.topbarOx}));
+  check('分類鈕 6 個且只顯示 1 個工具面板',mob.catsCount===6&&mob.paneOn===1,JSON.stringify({cats:mob.catsCount,pane:mob.paneOn}));
   await send('Emulation.setDeviceMetricsOverride',{width:1440,height:900,deviceScaleFactor:1,mobile:false});
   await sleep(400);
   const desk=JSON.parse(await evalJs(`JSON.stringify((function(){

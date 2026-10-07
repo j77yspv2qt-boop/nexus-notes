@@ -38,6 +38,7 @@ async function main(){
   const setup=JSON.parse(await evalJs(`JSON.stringify((function(){
     try{
       openDoc(curDoc().id);
+      setTool('select');
       const d=curDoc();d.pages[0].els=[];
       const cfg={type:'draw',xmin:0,xmax:100,xstep:20,ymin:0,ymax:100,ystep:20,
         zero:true,grid:true,eqAuto:true,title:'自繪經濟圖表',xl:'X',yl:'Y',lines:[],ilabels:{},arrows:[]};

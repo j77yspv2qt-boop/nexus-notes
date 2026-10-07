@@ -54,14 +54,15 @@ async function main(){
 
   // --- 1. UI 分類
   const u=JSON.parse(await evalJs(`JSON.stringify({
-    groups:document.querySelectorAll('#topbar .tgroup').length,
-    labels:[...document.querySelectorAll('#topbar .tlabel')].map(x=>x.textContent),
+    groups:document.querySelectorAll('#tbCats .tcat').length,
+    labels:[...document.querySelectorAll('#tbCats .tcat')].map(x=>x.textContent),
+    panes:document.querySelectorAll('#tbPanel .tbPane').length,
     hasSideList:!!document.querySelector('#fileList'),
     hasCollapse:!!document.querySelector('#btnSideCollapse'),
     hasZoom:!!document.querySelector('#zoomSel'),
     hasMargin:!!document.querySelector('#pageMargin')
   })`));
-  check('UI 功能分類（tgroup ≥6 且有分類標籤）',u.groups>=6&&u.labels.length>=6,(u.labels||[]).join('/'));
+  check('UI 功能分類（tcat ≥6 且有分類鈕+面板）',u.groups>=6&&u.labels.length>=6&&u.panes>=6,(u.labels||[]).join('/'));
   check('UI 側欄+檔案清單+縮放+邊距控件存在',u.hasSideList&&u.hasCollapse&&u.hasZoom&&u.hasMargin);
 
   // --- 2. 自繪經濟圖表

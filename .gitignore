@@ -5,3 +5,6 @@ android/*.apk
 android/*.idsig
 android/debug.keystore
 .DS_Store
+
+# 截圖驗證產物
+shot-*.png

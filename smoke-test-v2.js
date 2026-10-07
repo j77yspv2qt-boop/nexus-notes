@@ -93,14 +93,15 @@ async function main(){
   check('elbar 色塊同步',/67\s*,\s*160\s*,\s*71/.test(lc2.swBg||''),lc2.swBg);
   check('關閉調色盤後 commit',lc2.closed===true&&lc2.committed===true,JSON.stringify(lc2));
 
-  // --- 2. topbar fixed layout across zh/en ---
+  // --- 2. editor toolbar: category tabs, stable layout across zh/en ---
   const lay1=JSON.parse(await evalJs(`JSON.stringify((function(){
     try{
       setLang('zh-TW');
-      const g=[...document.querySelectorAll('#topbar .tgroup')].map(x=>Math.round(x.getBoundingClientRect().left));
-      const lbl=[...document.querySelectorAll('#topbar .tlabel')].map(x=>Math.round(x.getBoundingClientRect().width));
-      const fs=getComputedStyle(document.querySelector('#topbar .tlabel')).fontSize;
-      const bfs=getComputedStyle(document.querySelector('#topbar button')).fontSize;
+      const cats=[...document.querySelectorAll('#tbCats .tcat')];
+      const g=cats.map(x=>Math.round(x.getBoundingClientRect().left));
+      const lbl=cats.map(x=>Math.round(x.getBoundingClientRect().width));
+      const fs=getComputedStyle(cats[0]).fontSize;
+      const bfs=getComputedStyle(document.querySelector('#tbPanel .tbPane.on button')).fontSize;
       return {g,lbl,fs,bfs};
     }catch(e){return {err:String(e)}}
   })())`));
@@ -108,19 +109,20 @@ async function main(){
   const lay2=JSON.parse(await evalJs(`JSON.stringify((function(){
     try{
       setLang('en');
-      const g=[...document.querySelectorAll('#topbar .tgroup')].map(x=>Math.round(x.getBoundingClientRect().left));
-      const lbl=[...document.querySelectorAll('#topbar .tlabel')].map(x=>Math.round(x.getBoundingClientRect().width));
+      const cats=[...document.querySelectorAll('#tbCats .tcat')];
+      const g=cats.map(x=>Math.round(x.getBoundingClientRect().left));
+      const lbl=cats.map(x=>Math.round(x.getBoundingClientRect().width));
       return {g,lbl};
     }catch(e){return {err:String(e)}}
   })())`));
   await sleep(300);
   await evalJs(`setLang('zh-TW')`);
-  check('tlabel 字級 ≥12.5px',parseFloat(lay1.fs)>=12.5,'fs='+lay1.fs);
-  check('按鈕字級 ≥14px',parseFloat(lay1.bfs)>=14,'fs='+lay1.bfs);
+  check('分類鈕字級 ≥14px',parseFloat(lay1.fs)>=14,'fs='+lay1.fs);
+  check('工具按鈕字級 ≥14px',parseFloat(lay1.bfs)>=14,'fs='+lay1.bfs);
   const samePos=lay1.g.length===lay2.g.length&&lay1.g.every((v,i)=>Math.abs(v-lay2.g[i])<=2);
   const sameW=lay1.lbl.length===lay2.lbl.length&&lay1.lbl.every((v,i)=>Math.abs(v-lay2.lbl[i])<=2);
-  check('切換中英文 tgroup 位置不變(±2px)',samePos,JSON.stringify({zh:lay1.g,en:lay2.g}));
-  check('切換中英文 tlabel 寬度一致(±2px)',sameW,JSON.stringify({zh:lay1.lbl,en:lay2.lbl}));
+  check('切換中英文 分類鈕位置不變(±2px)',samePos,JSON.stringify({zh:lay1.g,en:lay2.g}));
+  check('切換中英文 分類鈕寬度一致(±2px)',sameW,JSON.stringify({zh:lay1.lbl,en:lay2.lbl}));
 
 
   // --- 3. sidebar frosted gradient cards ---
