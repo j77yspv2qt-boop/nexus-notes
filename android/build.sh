@@ -59,10 +59,10 @@ fi
 "$BT/apksigner" sign --ks "$KEYSTORE" --ks-pass pass:nexusapp --key-pass pass:nexusapp \
   --min-sdk-version 24 \
   --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true \
-  --out nexus-notes.apk build/aligned.apk
+  --out NEXUS.apk build/aligned.apk
 
 echo "== 驗證 =="
-CERTS="$("$BT/apksigner" verify --print-certs nexus-notes.apk)"
+CERTS="$("$BT/apksigner" verify --print-certs NEXUS.apk)"
 echo "$CERTS" | head -6
 GOT_CERT="$(echo "$CERTS" | awk '/SHA-256 digest/{print $NF; exit}')"
 if [ -f "$CERT_LOG" ]; then
@@ -79,5 +79,5 @@ else
   printf '%s\n' "$GOT_CERT" > "$CERT_LOG"
   echo "== 已建立憑證指紋記錄 → $CERT_LOG =="
 fi
-"$BT/aapt" dump badging nexus-notes.apk | grep -E "package|application-label|launchable-activity|sdkVersion|targetSdkVersion"
-echo "OK → $(pwd)/nexus-notes.apk ($(du -h nexus-notes.apk | cut -f1))"
+"$BT/aapt" dump badging NEXUS.apk | grep -E "package|application-label|launchable-activity|sdkVersion|targetSdkVersion"
+echo "OK → $(pwd)/NEXUS.apk ($(du -h NEXUS.apk | cut -f1))"

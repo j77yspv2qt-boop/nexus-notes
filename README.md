@@ -17,7 +17,7 @@
 
 ## Android App
 
-`nexus-notes.apk` 為已簽署的 WebView 封裝（`com.nexus.notes`，minSdk 24 / targetSdk 35），
+`NEXUS.apk` 為已簽署的 WebView 封裝（`com.nexus.notes`，minSdk 24 / targetSdk 35），
 內嵌 `note-app.html` 離線執行。直接安裝即可。
 
 ### 自行建置 APK
@@ -28,7 +28,7 @@
 export ANDROID_HOME=/path/to/android-sdk
 export JAVA_HOME=/path/to/jdk17
 cp note-app.html android/assets/note-app.html   # 更新內嵌版本
-cd android && ./build.sh                         # 產出 nexus-notes.apk
+cd android && ./build.sh                         # 產出 NEXUS.apk
 ```
 
 建置流程：`aapt2 compile/link` → `javac` → `d8` → 打包 dex → `zipalign` → `apksigner`。
