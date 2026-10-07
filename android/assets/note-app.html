@@ -84,7 +84,7 @@ kbd{font-family:var(--font);font-size:10.5px;background:var(--surface-2);border:
 /* 按鈕 hover 會建立堆疊上下文，讓整個按鈕連同 tooltip 一起浮到最上層，避免被其他按鈕遮擋 */
 [data-tip]:hover{z-index:600}
 /* ================= Topbar（Google 風：磨砂+膠囊分組+漸變強調） ================= */
-#topbar{display:flex;align-items:center;gap:8px;padding:calc(7px + var(--safe-top)) calc(12px + var(--safe-right)) 7px calc(12px + var(--safe-left));background:var(--glass);border-bottom:1px solid var(--border);position:relative;z-index:60;backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 10px 26px rgba(16,24,40,.07)}
+#topbar{display:flex;align-items:center;gap:8px;padding:calc(5px + var(--safe-top)) calc(12px + var(--safe-right)) 5px calc(12px + var(--safe-left));background:var(--glass);border-bottom:1px solid var(--border);position:relative;z-index:60;backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:0 1px 0 rgba(255,255,255,.45) inset,0 10px 26px rgba(16,24,40,.07)}
 .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;letter-spacing:.06em;margin-right:2px;padding:6px 15px 6px 7px;border-radius:999px;background:linear-gradient(135deg,#0b0b0e 0%,#2a2a31 46%,#585860 100%);white-space:nowrap;color:#fff;cursor:pointer;border:1px solid rgba(255,255,255,.16);box-shadow:0 4px 14px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.14);backdrop-filter:blur(10px) saturate(1.25);-webkit-backdrop-filter:blur(10px) saturate(1.25);transition:transform .16s cubic-bezier(.2,.8,.3,1.2),box-shadow .18s ease}
 .brand:hover{transform:scale(1.04);box-shadow:0 8px 22px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.2)}
 .brand:active{transform:scale(.96)}
@@ -145,7 +145,7 @@ html[data-theme=dark] #home{background:
  var(--bg)}
 body.view-home #home{display:flex}
 body.view-home #app{display:none}
-.homeTop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:calc(14px + var(--safe-top)) calc(18px + var(--safe-right)) 4px calc(18px + var(--safe-left))}
+.homeTop{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:calc(9px + var(--safe-top)) calc(18px + var(--safe-right)) 4px calc(18px + var(--safe-left))}
 .homeTop .brand{margin-right:0;font-size:16px;height:44px;padding:0 16px 0 9px;gap:9px}
 .homeTop .brand .ic.nx{width:26px;height:26px}
 .homeSearch{flex:1;max-width:560px;display:flex;align-items:center;gap:10px;height:46px;padding:0 20px;border-radius:999px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:box-shadow .18s ease,border-color .18s ease,transform .18s cubic-bezier(.2,.8,.3,1.2)}
@@ -210,7 +210,7 @@ html[data-theme=dark] .ncard .acts button{background:rgba(32,33,36,.82);color:#e
 @media (hover:none){.ncard .acts{opacity:1;transform:none}}
 @media (max-width:768px){
  .ncard{height:116px;border-radius:20px;padding:12px 14px}
- .homeTop{gap:8px;padding:calc(12px + var(--safe-top)) calc(14px + var(--safe-right)) 2px calc(14px + var(--safe-left))}
+ .homeTop{gap:8px;padding:calc(8px + var(--safe-top)) calc(14px + var(--safe-right)) 2px calc(14px + var(--safe-left))}
  .homeTop .brand{font-size:15px;height:42px;padding:0 14px 0 8px}
  .homeSearch{order:3;flex-basis:100%;max-width:none;height:44px}
  .homeActs{gap:7px}
@@ -1884,13 +1884,16 @@ $('#pages').addEventListener('pointerdown',ev=>{
    return;
   }
  }
- /* 自繪圖表：長按／拖曳線條 → 拖到另一條線產生黑色箭頭 */
+ /* 自繪圖表：按住／拖曳線條 → 拖到另一條線產生黑色箭頭
+    元素尚未選取時自動選取，手機上長按線條即可直接拖（不必先點一下選取） */
  const ld=ev.target.closest?ev.target.closest('[data-linei]'):null;
- if(ld&&S.sel){
-  const f=findEl(S.sel.id);
+ if(ld){
+  const owner=ld.closest?ld.closest('.el'):null;
+  const f=owner?findEl(owner.dataset.id):null;
   if(f&&f.el.type==='chart'&&f.el.cfg&&f.el.cfg.type==='draw'){
    const chartEl=document.querySelector('.el[data-id="'+f.el.id+'"]');
    if(chartEl){
+    if(!S.sel||S.sel.id!==f.el.id)S.sel={pi:f.pi,id:f.el.id};
     S.dselLine=+ld.dataset.linei;S.dselArrow=null;
     drag={mode:'line',pi:f.pi,id:f.el.id,li:+ld.dataset.linei,orig:[x,y],chartEl,pageEl};
     ev.preventDefault();ev.stopPropagation();
@@ -2694,6 +2697,8 @@ function drawSVG(e){
   if(ln.arrowEnd)mk+=' marker-end="url(#m'+e.id+i+'e)"';
   s+='<path d="'+d+'" fill="none" stroke="'+(ln.color||'#d32f2f')+'" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"'+
      (ln.dashed?' stroke-dasharray="7 4"':'')+mk+' data-linei="'+i+'" style="pointer-events:stroke;cursor:pointer"/>';
+  /* 手指命中區：線條只有 2.4px，手指幾乎點不中（箭頭本來就有 .darrowHit，這裡補上線條） */
+  s+='<path d="'+d+'" fill="none" stroke="transparent" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" data-linei="'+i+'" pointer-events="stroke"/>';
   if(ln.name){
    const np=(ln.namePos&&ln.namePos.length)?ln.namePos:P[0];
    s+='<text x="'+(X(np[0])+7)+'" y="'+(Y(np[1])-7)+'" font-size="'+(ln.nameFS||10.5)+'" font-weight="700" fill="'+(ln.color||'#d32f2f')+'" data-nametext="'+i+'">'+esc(ln.name)+'</text>';

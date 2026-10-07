@@ -98,7 +98,12 @@ public class MainActivity extends Activity {
     private void pushInsets() {
         if (web == null) return;
         measureInsets();
-        int top = insetTop, bottom = insetBottom;
+        /* insetTop/Bottom 是實體像素，CSS 的 env(safe-area-inset-*) 單位是 CSS px，
+           必須除以 density，否則 DPR 3 的手機會把狀態列高度放大 3 倍、頂列被壓得很下面。 */
+        float density = getResources().getDisplayMetrics().density;
+        if (density <= 0f) density = 1f;
+        int top = Math.round(insetTop / density);
+        int bottom = Math.round(insetBottom / density);
         String js = "try{var r=document.documentElement;"
                 + "r.style.setProperty('--safe-top','" + top + "px');"
                 + "r.style.setProperty('--safe-bottom','" + bottom + "px');}catch(e){}";
